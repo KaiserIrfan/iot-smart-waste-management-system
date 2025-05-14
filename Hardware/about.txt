@@ -1,0 +1,1 @@
+This folder contain iot-hardware files for smart waste management system.

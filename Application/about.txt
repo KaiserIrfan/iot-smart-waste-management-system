@@ -1,0 +1,1 @@
+This folder contain mobile application app files for smart waste management system.
