@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "443498418303",
+    "firebase_url": "https://smart-waste-management-1b537-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "smart-waste-management-1b537",
+    "storage_bucket": "smart-waste-management-1b537.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:443498418303:android:e8ccd654b946780a102f4a",
+        "android_client_info": {
+          "package_name": "com.example.smartbin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEcGE-kvnZafYC1ZZ6RgNKDsgGbpFDxew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
