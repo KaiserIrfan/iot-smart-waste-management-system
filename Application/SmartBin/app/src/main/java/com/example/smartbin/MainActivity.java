@@ -1,6 +1,8 @@
 package com.example.smartbin;
 
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.util.Log;
 
@@ -19,7 +21,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView fullness;
+    private TextView fullness, lid_status;
+    private Button lidButton;
+    private boolean lidStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +32,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference dbref = database.getReference("Readings");
+        DatabaseReference dbref;
         fullness = findViewById(R.id.Fullness);
+        lid_status = findViewById(R.id.lid_status);
+        lidButton = findViewById(R.id.lid_status_button);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -37,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        dbref = database.getReference("Readings");
         dbref.child("Fullness").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -48,6 +55,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.w("Failed to read value.", error.toException());
+            }
+        });
+        dbref = database.getReference("open_lid");
+        DatabaseReference finalDbref = dbref;
+        finalDbref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                lidStatus = Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
+                lid_status.setText(lidStatus ? "Open" : "Closed");
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("Failed to read value.", error.toException());
+            }
+        });
+        lidButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lidStatus) {
+                    finalDbref.setValue(false);
+                } else {
+                    finalDbref.setValue(true);
+                }
             }
         });
     }

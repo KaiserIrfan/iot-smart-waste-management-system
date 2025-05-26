@@ -28,5 +28,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/FullnessTxt" />
 
+    <TextView
+        android:id="@+id/lid_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="21dp"
+        android:text="Open"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Fullness" />
+
+    <Button
+        android:id="@+id/lid_status_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lid"
+        app:layout_constraintEnd_toEndOf="@+id/lid_status"
+        app:layout_constraintStart_toStartOf="@+id/lid_status"
+        app:layout_constraintTop_toBottomOf="@+id/lid_status" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
