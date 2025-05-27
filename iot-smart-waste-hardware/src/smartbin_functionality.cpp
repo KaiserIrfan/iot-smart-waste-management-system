@@ -1,0 +1,1 @@
+// implement smart bin functionality here, making use of apis defined in "hardware_api.*"
