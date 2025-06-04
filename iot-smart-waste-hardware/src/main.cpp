@@ -65,7 +65,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   if(!WiFi.isConnected()) { // Check if WiFi is not connected
     Serial.println("WiFi is not connected");
     digitalWrite(LED_BUILTIN, LOW); // LED indicates WiFi is not connected
@@ -74,6 +73,11 @@ void loop() {
     if(auth.token.uid != ""){
       firebaseConnected = true; // Set firebaseConnected to true if UID is not empty
     } else {firebaseConnected = false;}
+  }
+  // Check if Firebase is ready
+  if (WiFi.isConnected() && !Firebase.ready() && auth.token.uid == "") {
+    Serial.println("Retrying Firebase initialization...");
+    Firebase.begin(&config, &auth);
   }
   checkWiFiTrigger(); // Check if user want to configure WiFi
 
@@ -97,10 +101,13 @@ void loop() {
   }
 }
 
+
 // put function definitions here:
 void checkWiFiTrigger() {
   // This function checks the trigger pin
-  if (digitalRead(TriggerPin) == LOW) { // If the trigger pin is LOW
+  static unsigned long lastTrigger = 0;
+  if (millis() - lastTrigger > 2000 && (TriggerPin) == LOW) { // If the trigger pin is LOW
+    lastTrigger = millis();
     Serial.println("WiFi setting activated!"); 
     WiFiManager wm; // Create a WiFiManager object
     wm.setConfigPortalTimeout(120); // Set a timeout for the config portal
