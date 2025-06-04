@@ -86,6 +86,14 @@ void loop() {
     } else {
       Serial.println("Failed to read Fullness value from Firebase.");
     }
+    if (Firebase.RTDB.getBool(&fbdo, "/open_lid")) {
+      Serial.print("Open Lid: ");
+      if (fbdo.boolData()) {
+        Serial.println("true"); // Print true if the lid is open
+      } else {
+        Serial.println("false"); // Print false if the lid is closed
+      }
+    }
   }
 }
 
