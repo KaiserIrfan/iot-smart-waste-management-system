@@ -4,13 +4,16 @@
 #ifndef hardwareAPI_h
 #define hardwareAPI_h
 
+#include <Arduino.h>
+
 namespace hardwareAPI {
 
     // ------------------
     // --- SENSOR API ---
-    // ------------------
+    // ------------------ 
+
     bool measureFullnessSetup(int UVtrigrPin, int UVechoPin);
-    int measureFullness(int UVtrigtPin, int UVechoPin);
+    int measureFullness(int UVtrigtPin, int UVechoPin, float distanceMin, float distanceMax);
 
     bool measureTouchSetup(int capacitiveDetectPulsePin);
     bool measureTouch(int detectPulsePin);
