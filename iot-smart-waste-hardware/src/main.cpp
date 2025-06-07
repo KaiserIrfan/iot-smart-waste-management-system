@@ -35,6 +35,14 @@ bool firebaseConnected = false; // Variable to check if Firebase is connected
 // --- Timing ---
 unsigned long previousTime = 0; // Variable to store the last data send/read
 
+// --- Custom data types ---
+
+struct SensorData {
+  float weight;
+  float fullness;
+  bool touch;
+};
+
 // -----------------------------
 // --- Function declarations ---
 // -----------------------------
@@ -57,6 +65,11 @@ bool updateNeeded();
 void wifiCheckTrigger(); // Function to check the trigger pin and start WiFi configuration
 void wifiFirebaseConnectionCheck();
 bool firebaseReadLidTrigger();
+bool firebaseSend(String key, int value); // Function to send data to Firebase
+float sensorReadWeight(); // Function to read the weight sensor
+float sensorReadFullness(); // Function to read the UV sensor
+bool sensorReadTouch(); // Function to read the touch sensor
+SensorData sensorRead(); // Function to read the sensors and send data to Firebase
 
 
 // -------------
@@ -83,6 +96,7 @@ void loop() {
 
   // Read data
   bool firebaseTriggerLid = firebaseReadLidTrigger();
+  SensorData mySensorData = sensorRead(); // Read the sensors
 }
 
 
@@ -137,11 +151,11 @@ void firebaseSetup() {
 
 // --- Loop functions ---
 
-bool updateNeeded(ulong frequency) {
+bool updateNeeded(ulong frequency, ulong *lastUpdate) {
   ulong currentTime = millis();
-  ulong passedTime = currentTime - previousTime;
+  ulong passedTime = currentTime - *lastUpdate;
   if(passedTime > frequency) {
-    previousTime = currentTime;
+    *lastUpdate = currentTime; // Update the last update time
     return true;
   }
   return false;
@@ -180,7 +194,8 @@ void wifiFirebaseConnectionCheck() {
 }
 
 bool firebaseReadLidTrigger() {
-  if(Firebase.ready() && firebaseConnected == true && updateNeeded(5000)){
+  static ulong lastUpdated = 0;
+  if(Firebase.ready() && firebaseConnected == true && updateNeeded(5000, &lastUpdated)){
     if (Firebase.RTDB.getBool(&fbdo, "/open_lid")) {
       Serial.print("Open Lid: ");
       if (fbdo.boolData()) {
@@ -191,4 +206,63 @@ bool firebaseReadLidTrigger() {
     }
   }
   return false;
+}
+
+bool firebaseSend(String key, int value) {
+  if(Firebase.ready() && firebaseConnected == true) {
+    if (Firebase.RTDB.setInt(&fbdo, key, value)) {
+      Serial.print("Data sent to Firebase: ");
+      Serial.print(key);
+      Serial.print(" = ");
+      Serial.println(value);
+      return true; // Return true if data is sent successfully
+    } else {
+      Serial.print("Failed to send data to Firebase: ");
+      Serial.println(fbdo.errorReason()); // Print the error reason if sending fails
+    }
+  } else {
+    Serial.println("Firebase is not ready or not connected.");
+  }
+  return false;
+}
+
+float sensorReadWeight() {
+  // This function should read the weight sensor and return the weight
+  // For now, we will return a dummy value
+  return 42.0; // Dummy value for weight
+}
+
+float sensorReadFullness() {
+  // This function should read the UV sensor and return the fullness
+  // For now, we will return a dummy value
+  return 100.0; // Dummy value for fullness
+}
+
+bool sensorReadTouch() {
+  // This function should read the touch sensor and return the touch value
+  // For now, we will return a dummy value
+  return false; // Dummy value for touch
+}
+
+SensorData sensorRead() {
+  static ulong lastUpdate = 0;
+  if(updateNeeded(500, &lastUpdate)) {
+    SensorData mySensorData = {
+      .weight = sensorReadWeight(), // Read the weight sensor
+      .fullness = sensorReadFullness(), // Read the UV sensor
+      .touch = sensorReadTouch() // Read the touch sensor
+    };
+    Serial.println("Sensor data read:");
+    Serial.print("Weight: ");
+    Serial.println(mySensorData.weight);
+    Serial.print("Fullness: ");
+    Serial.println(mySensorData.fullness);
+    Serial.print("Touch: ");
+    Serial.println(mySensorData.touch);
+    // Send the sensor data to Firebase
+    firebaseSend("/Readings/weight", mySensorData.weight);
+    firebaseSend("/Readings/fullness", mySensorData.fullness);
+    firebaseSend("/Readings/touch", mySensorData.touch);
+    return mySensorData;;
+  }
 }
