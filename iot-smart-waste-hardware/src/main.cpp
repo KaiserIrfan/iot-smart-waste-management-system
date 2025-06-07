@@ -8,6 +8,7 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 #include <HX711.h> // Include the HX711 library for weight sensor
+#include <ESP32Servo.h> // Include the Servo library for servo actuator
 
 // ---------------------
 // --- Configuration ---
@@ -33,6 +34,9 @@
 // Capacitive touch sensor
 #define CapacitiveSignalPin NULL // Define the pin to read the capacitive touch sensor
 
+// Servo 
+#define ServoControlPin NULL
+
 // --- Firebase config ---
 #define API_KEY "AIzaSyDN0bocHyMBXdRX7nLLn9TRyZ6pghbHqfI" // Firebase API key
 #define DATABASE_URL "https://smart-waste-management-1b537-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -52,7 +56,9 @@
 #define UVdistanceMin NULL
 #define UVdistanceMax NULL
 
-
+// Calibrate servo
+#define ServoMinPulse 1000
+#define ServoMaxPulse 2000
 
 // ------------------------
 // --- Global variables ---
@@ -68,6 +74,9 @@ bool firebaseConnected = false; // Variable to check if Firebase is connected
 
 // Scale object for weight sensor
 HX711 scale;
+
+// Servo object for servo actuator
+Servo myServo;
 
 // -------------------------
 // --- Custom data types ---
@@ -355,15 +364,19 @@ SensorData sensorRead() {
 }
 
 void actuatorServoSetup() {
-
+  myServo.attach(ServoControlPin, ServoMinPulse, ServoMaxPulse); // Attach the servo to the control pin with min and max pulse width
 }
 
 void actuatorServoOpenLid() {
-
+  myServo.write(90); // Write 0 degrees to the servo to open the lid
+  Serial.println("Lid opened.");
+  firebaseSend("Readings/lid_open", true); // Send the lid status to Firebase
 }
 
 void actuatorServoCloseLid() {
-
+  myServo.write(0); // Write 0 degrees to the servo to close the lid
+  Serial.println("Lid closed.");
+  firebaseSend("Readings/lid_open", false); // Send the lid status to Firebase
 }
 
 void actuatorDisplaySetup() {
