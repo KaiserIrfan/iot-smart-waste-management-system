@@ -25,6 +25,9 @@
 #define UVtrigrPin NULL // Define the pin to send ultrasonic burst
 #define UVechoPin NULL // Define the pin to receive ultrasonic burst
 
+// Capacitive touch sensor
+#define CapacitiveSignalPin NULL // Define the pin to read the capacitive touch sensor
+
 // --- Firebase config ---
 #define API_KEY "AIzaSyDN0bocHyMBXdRX7nLLn9TRyZ6pghbHqfI" // Firebase API key
 #define DATABASE_URL "https://smart-waste-management-1b537-default-rtdb.asia-southeast1.firebasedatabase.app/"
@@ -86,7 +89,7 @@ bool firebaseSend(String key, int value); // Function to send data to Firebase
 
 // Hardware functions
 void sensorReadWeightSetup(); // Function to setup the weight sensor
-void sensorReadFullnessSetup(uint8_t UVtrigrPin, uint8_t UVechoPin); // Function to setup the UV sensor
+void sensorReadFullnessSetup(); // Function to setup the UV sensor
 void sensorReadTouchSetup(); // Function to setup the touch sensor
 
 float sensorReadWeight(); // Function to read the weight sensor
@@ -290,10 +293,13 @@ float sensorReadFullness() {
   return standardizedDistance;
 }
 
+void sensorReadTouchSetup() {
+  // Initialize the pin to read the capacitive touch sensor
+  pinMode(CapacitiveSignalPin, INPUT);
+}
+
 bool sensorReadTouch() {
-  // This function should read the touch sensor and return the touch value
-  // For now, we will return a dummy value
-  return false; // Dummy value for touch
+  return digitalRead(CapacitiveSignalPin); // Read the capacitive touch sensor pin
 }
 
 SensorData sensorRead() {
