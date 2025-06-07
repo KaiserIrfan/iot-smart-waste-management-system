@@ -111,6 +111,16 @@ float sensorReadFullness(); // Function to read the UV sensor
 bool sensorReadTouch(); // Function to read the touch sensor
 SensorData sensorRead(); // Function to read the sensors and send data to Firebase
 
+void actuatorServoSetup(); // Function to setup the servo actuator
+void actuatorDisplaySetup(); // Function to setup the display
+void actuatorBuzzerSetup(); // Function to setup the buzzer
+
+void actuatorServoOpenLid(); // Function to open the lid using the servo actuator
+void actuatorServoCloseLid(); // Function to close the lid using the servo actuator
+void actuatorDisplayMessage(); // Function to display a message on the display
+void actuatorDisplayResetMessage(); // Function to reset the display message
+void actuatorBuzzerBuzz(); // Function to buzz the buzzer
+
 
 // -------------
 // --- Main ----
@@ -342,4 +352,36 @@ SensorData sensorRead() {
     firebaseSend("/Readings/touch", mySensorData.touch);
     return mySensorData;;
   }
+}
+
+void actuatorServoSetup() {
+
+}
+
+void actuatorServoOpenLid() {
+
+}
+
+void actuatorServoCloseLid() {
+
+}
+
+void actuatorDisplaySetup() {
+
+}
+
+void actuatorDisplayMessage() {
+
+}
+
+void actuatorDisplayResetMessage() {
+  
+}
+
+void actuatorBuzzerSetup() {
+
+}
+
+void actuatorBuzzerBuzz() {
+
 }
