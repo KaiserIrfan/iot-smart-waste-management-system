@@ -13,12 +13,34 @@
 // ---------------------
 
 // --- Pins ---
-#define TriggerPin 23 // Define the trigger pin
+
+// Control wifi
+#define WiFiTriggerPin 23 // Define the wifi trigger pin
+
+// Status LED
 #define LED_BUILTIN 2 // Define the built-in LED pin for ESP32
+
+// UV sensors
+// TODO: replace pins with actual pins
+#define UVtrigrPin NULL // Define the pin to send ultrasonic burst
+#define UVechoPin NULL // Define the pin to receive ultrasonic burst
 
 // --- Firebase config ---
 #define API_KEY "AIzaSyDN0bocHyMBXdRX7nLLn9TRyZ6pghbHqfI" // Firebase API key
 #define DATABASE_URL "https://smart-waste-management-1b537-default-rtdb.asia-southeast1.firebasedatabase.app/"
+
+// -------------------
+// --- Calibration ---
+// -------------------
+
+// Calibrate UV sensor for bin fullness)
+// --> Min: Distance measured when bin is full
+// --> Max: Distance measured when bin is empty
+// TODO: replace with actual values
+#define UVdistanceMin NULL
+#define UVdistanceMax NULL
+
+
 
 // ------------------------
 // --- Global variables ---
@@ -31,9 +53,6 @@ FirebaseConfig config;
 
 // --- Firebase status ---
 bool firebaseConnected = false; // Variable to check if Firebase is connected
-
-// --- Timing ---
-unsigned long previousTime = 0; // Variable to store the last data send/read
 
 // --- Custom data types ---
 
@@ -59,13 +78,17 @@ void firebaseSetup();
 // Helper functions
 bool updateNeeded();
 
-// Hardware functions
-
 // IoT function
 void wifiCheckTrigger(); // Function to check the trigger pin and start WiFi configuration
 void wifiFirebaseConnectionCheck();
 bool firebaseReadLidTrigger();
 bool firebaseSend(String key, int value); // Function to send data to Firebase
+
+// Hardware functions
+void sensorReadWeightSetup(); // Function to setup the weight sensor
+void sensorReadFullnessSetup(uint8_t UVtrigrPin, uint8_t UVechoPin); // Function to setup the UV sensor
+void sensorReadTouchSetup(); // Function to setup the touch sensor
+
 float sensorReadWeight(); // Function to read the weight sensor
 float sensorReadFullness(); // Function to read the UV sensor
 bool sensorReadTouch(); // Function to read the touch sensor
@@ -108,7 +131,7 @@ void loop() {
 
 void pinsSetup() {
   pinMode(LED_BUILTIN, OUTPUT); // Initialize the LED_BUILTIN pin as an output
-  pinMode(TriggerPin, INPUT_PULLUP); // Initialize the TriggerPin as an input
+  pinMode(WiFiTriggerPin, INPUT_PULLUP); // Initialize the WiFi TriggerPin as an input
 }
 
 void wifiSetup() {
@@ -163,7 +186,7 @@ bool updateNeeded(ulong frequency, ulong *lastUpdate) {
 
 void wifiCheckTrigger() {
   // This function checks the trigger pin
-  if (digitalRead(TriggerPin) == LOW) { // If the trigger pin is LOW
+  if (digitalRead(WiFiTriggerPin) == LOW) { // If the trigger pin is LOW
     Serial.println("WiFi setting activated!"); 
     WiFiManager wm; // Create a WiFiManager object
     wm.setConfigPortalTimeout(120); // Set a timeout for the config portal
@@ -232,10 +255,39 @@ float sensorReadWeight() {
   return 42.0; // Dummy value for weight
 }
 
+void sensorReadFullnessSetup() {
+  // Initialize pin to send ultrasonic burst
+  pinMode(UVtrigrPin, OUTPUT);
+  // Initialize pin to receive ultrasonic burst
+  pinMode(UVechoPin, INPUT);  
+}
+
 float sensorReadFullness() {
-  // This function should read the UV sensor and return the fullness
-  // For now, we will return a dummy value
-  return 100.0; // Dummy value for fullness
+  
+  // --- Send the ultrasonic bust 
+  
+  // Make sure the pin to send out the ultrasonic burst is low first
+  digitalWrite(UVtrigrPin, LOW);
+  delayMicroseconds(2);
+  // Send a 10 microsecond ultrasonic burst
+  digitalWrite(UVtrigrPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(UVtrigrPin, LOW);
+
+  // --- Receive ultrasonic burst and calculate distance
+
+  // How long to receive ultrasonic burst again
+  float durationToReceive = pulseIn(UVechoPin, HIGH);
+  // Convert duration to distance
+  // TODO: Check formula for correctness
+  float measuredDistance = (durationToReceive * 0.0343) / 2;
+  
+  // --- Standardize distance ---
+  float relativeDistance = measuredDistance - UVdistanceMin;
+  float distanceRange = UVdistanceMax - UVdistanceMin;
+  float standardizedDistance = (relativeDistance/distanceRange) * 100;
+
+  return standardizedDistance;
 }
 
 bool sensorReadTouch() {
