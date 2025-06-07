@@ -7,6 +7,7 @@
 #include <Firebase_ESP_Client.h>
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
+#include <HX711.h> // Include the HX711 library for weight sensor
 
 // ---------------------
 // --- Configuration ---
@@ -19,6 +20,10 @@
 
 // Status LED
 #define LED_BUILTIN 2 // Define the built-in LED pin for ESP32
+
+// Weight sensor
+#define LoadcellDoutPin NULL;
+#define LoadcellSckPiN NULL;
 
 // UV sensors
 // TODO: replace pins with actual pins
@@ -35,6 +40,10 @@
 // -------------------
 // --- Calibration ---
 // -------------------
+
+// Calibrate weight sensor
+// --> Divider: The value to divide the raw weight reading by
+#define LoadcellDivider 1 // TODO: replace with actual value
 
 // Calibrate UV sensor for bin fullness)
 // --> Min: Distance measured when bin is full
@@ -57,7 +66,12 @@ FirebaseConfig config;
 // --- Firebase status ---
 bool firebaseConnected = false; // Variable to check if Firebase is connected
 
+// Scale object for weight sensor
+HX711 scale;
+
+// -------------------------
 // --- Custom data types ---
+// -------------------------
 
 struct SensorData {
   float weight;
@@ -252,10 +266,15 @@ bool firebaseSend(String key, int value) {
   return false;
 }
 
+void sensorReadWeightSetup() {
+  scale.begin(LoadcellDoutPin, LoadcellSckPiN);
+  scale.set_scale(LoadcellDivider);
+  scale.tare();
+}
+
 float sensorReadWeight() {
-  // This function should read the weight sensor and return the weight
-  // For now, we will return a dummy value
-  return 42.0; // Dummy value for weight
+  float weight = scale.get_units();
+  return weight;
 }
 
 void sensorReadFullnessSetup() {
