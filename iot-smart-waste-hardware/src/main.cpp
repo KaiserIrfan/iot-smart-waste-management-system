@@ -10,11 +10,16 @@
 #include <HX711.h> // Include the HX711 library for weight sensor
 #include <ESP32Servo.h> // Include the Servo library for servo actuator
 
-// ---------------------
-// --- Configuration ---
-// ---------------------
+// -------------------------------
+// --- Behaviour configuration ---
+// -------------------------------
+#define LidCloseAfterMillis 10000 // After how many milliseconds the lid will be closed again
+#define LidBlockAtFullness 85 // Control at which fullness level lid will refuse to open
+#define CompressionRatioThreshold 150 // Control at which (fullness/weight) ratio the trash is considered to be compressable
 
-// --- Pins ---
+// ------------------------------
+// --- Hardware configuration ---
+// ------------------------------
 
 // Control wifi
 #define WiFiTriggerPin 23 // Define the wifi trigger pin
@@ -37,7 +42,11 @@
 // Servo 
 #define ServoControlPin NULL
 
+// Buzzer
+#define BuzzerControlPin NULL
+
 // --- Firebase config ---
+
 #define API_KEY "AIzaSyDN0bocHyMBXdRX7nLLn9TRyZ6pghbHqfI" // Firebase API key
 #define DATABASE_URL "https://smart-waste-management-1b537-default-rtdb.asia-southeast1.firebasedatabase.app/"
 
@@ -69,8 +78,10 @@ FirebaseData fbdo;
 FirebaseAuth auth;
 FirebaseConfig config;
 
-// --- Firebase status ---
+// --- Status vars ---
 bool firebaseConnected = false; // Variable to check if Firebase is connected
+bool lid_open = false; // Variable to store whether lid is open or not
+ulong lidLastOpened = 0; // Variable to store when lid was last opened
 
 // Scale object for weight sensor
 HX711 scale;
@@ -102,7 +113,7 @@ void firebaseSetup();
 // --- Loop functions ---
 
 // Helper functions
-bool updateNeeded();
+bool updateNeeded(ulong frequency, ulong *lastUpdate);
 
 // IoT function
 void wifiCheckTrigger(); // Function to check the trigger pin and start WiFi configuration
@@ -126,7 +137,7 @@ void actuatorBuzzerSetup(); // Function to setup the buzzer
 
 void actuatorServoOpenLid(); // Function to open the lid using the servo actuator
 void actuatorServoCloseLid(); // Function to close the lid using the servo actuator
-void actuatorDisplayMessage(); // Function to display a message on the display
+void actuatorDisplayMessage(String message); // Function to display a message on the display
 void actuatorDisplayResetMessage(); // Function to reset the display message
 void actuatorBuzzerBuzz(); // Function to buzz the buzzer
 
@@ -146,16 +157,54 @@ void setup() {
 // --- Loop, run repeatedly until shutdown ---
 void loop() {
 
-  // Perform IoT connection check
+  // --- Perform IoT connection check ---
   // --> Check if user wants to enter WiFi setup mode
   // --> Check if connected to WiFi
   // --> Check if connected to Firebase
   wifiCheckTrigger(); // Check if user want to configure WiFi
   wifiFirebaseConnectionCheck(); // Check if WiFi and Firebase is connected
 
-  // Read data
+  // --- Read data ---
   bool firebaseTriggerLid = firebaseReadLidTrigger();
   SensorData mySensorData = sensorRead(); // Read the sensors
+
+  // --- Control the lid ---
+
+  // Default state
+  // --> Closed lid, no override, ready for user
+  if(!mySensorData.touch && !lid_open && !firebaseTriggerLid) {
+    actuatorDisplayMessage("Hello, stranger!");
+  }
+  // User requests opening
+  // --> Bin has enough space: Adhere user request 
+  else if(mySensorData.touch && !lid_open && mySensorData.fullness < LidBlockAtFullness) {
+    actuatorServoOpenLid();
+    actuatorDisplayMessage("Ready to dump!");
+  }
+  // --> Bin is too full: Refuse user request
+  else if(mySensorData.touch && !lid_open && mySensorData.fullness >= LidBlockAtFullness) {
+    actuatorDisplayMessage("Bin is full, next bin is around the corner!");
+    actuatorBuzzerBuzz(); // Buzz the buzzer to indicate bin is full
+  }
+  // City employee requests opening
+  else if(firebaseTriggerLid && !lid_open) {
+    actuatorServoOpenLid();
+    actuatorDisplayMessage("Close lid via app after maintenance, fellow city employee!");
+    actuatorBuzzerBuzz(); // Buzz the buzzer to indicate lid is open
+  }
+
+  // Request compression when needed
+  if(lid_open && !firebaseTriggerLid) {
+    float fullnessWeightRatio = mySensorData.fullness / mySensorData.weight; 
+    if(fullnessWeightRatio > CompressionRatioThreshold) {
+      actuatorDisplayMessage("Please compress the trash, dear customer!");
+      actuatorBuzzerBuzz(); 
+  }
+  
+  // Close lid when conditions fullfilled
+  if(lid_open && updateNeeded(LidCloseAfterMillis, &lidLastOpened) && !firebaseTriggerLid) {
+    actuatorServoCloseLid();
+  }
 }
 
 
@@ -369,12 +418,15 @@ void actuatorServoSetup() {
 
 void actuatorServoOpenLid() {
   myServo.write(90); // Write 0 degrees to the servo to open the lid
+  lid_open = true; 
+  lidLastOpened= millis();
   Serial.println("Lid opened.");
   firebaseSend("Readings/lid_open", true); // Send the lid status to Firebase
 }
 
 void actuatorServoCloseLid() {
   myServo.write(0); // Write 0 degrees to the servo to close the lid
+  lid_open = false;
   Serial.println("Lid closed.");
   firebaseSend("Readings/lid_open", false); // Send the lid status to Firebase
 }
@@ -383,7 +435,7 @@ void actuatorDisplaySetup() {
 
 }
 
-void actuatorDisplayMessage() {
+void actuatorDisplayMessage(String message) {
 
 }
 
@@ -392,9 +444,12 @@ void actuatorDisplayResetMessage() {
 }
 
 void actuatorBuzzerSetup() {
-
+  pinMode(BuzzerControlPin, OUTPUT); // Initialize the buzzer control pin as an output
+  digitalWrite(BuzzerControlPin, LOW); // Set the buzzer to LOW initially
 }
 
 void actuatorBuzzerBuzz() {
+  static ulong lastBuzzed = 0;
+  tone(BuzzerControlPin, 750); // Generate a tone at 750 Hz on the buzzer control pin
 
 }
