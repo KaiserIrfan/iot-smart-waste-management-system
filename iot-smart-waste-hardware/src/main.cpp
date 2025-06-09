@@ -9,6 +9,7 @@
 #include "addons/RTDBHelper.h"
 #include <HX711.h> // Include the HX711 library for weight sensor
 #include <ESP32Servo.h> // Include the Servo library for servo actuator
+#include <LiquidCrystal_I2C.h>
 
 // -------------------------------
 // --- Behaviour configuration ---
@@ -45,6 +46,9 @@
 
 // Buzzer
 #define BuzzerControlPin NULL
+
+// LCD
+#define lcdAddress NULL // TODO: Run scanner sketch to get LCD address
 
 // --- Firebase config ---
 
@@ -91,6 +95,9 @@ HX711 scale;
 
 // Servo object for servo actuator
 Servo myServo;
+
+// LCD object for LCD
+LiquidCrystal_I2C lcd(lcdAddress, 16, 2);
 
 // -------------------------
 // --- Custom data types ---
@@ -211,6 +218,7 @@ void loop() {
   }
 
   // Stop buzzing when frequency exceeds -> no condition requests buzzing anymore
+  // TODO: buzzing logic needs to be tested, whether really generates beep-beep-beep-...
   if(updateNeeded(buzzingFrequency*2, &lastBuzzed) && buzzerOn) {
     actuatorBuzzerNobuzz();
   }
