@@ -16,6 +16,7 @@
 #define LidCloseAfterMillis 10000 // After how many milliseconds the lid will be closed again
 #define LidBlockAtFullness 85 // Control at which fullness level lid will refuse to open
 #define CompressionRatioThreshold 150 // Control at which (fullness/weight) ratio the trash is considered to be compressable
+#define buzzingFrequency 500 // time in milliseconds between beeps
 
 // ------------------------------
 // --- Hardware configuration ---
@@ -82,6 +83,8 @@ FirebaseConfig config;
 bool firebaseConnected = false; // Variable to check if Firebase is connected
 bool lid_open = false; // Variable to store whether lid is open or not
 ulong lidLastOpened = 0; // Variable to store when lid was last opened
+ulong lastBuzzed = 0;
+bool buzzerOn = false;
 
 // Scale object for weight sensor
 HX711 scale;
@@ -140,6 +143,7 @@ void actuatorServoCloseLid(); // Function to close the lid using the servo actua
 void actuatorDisplayMessage(String message); // Function to display a message on the display
 void actuatorDisplayResetMessage(); // Function to reset the display message
 void actuatorBuzzerBuzz(); // Function to buzz the buzzer
+void actuatorBuzzerNoBuzz(); // Function to stop buzzing
 
 
 // -------------
@@ -192,7 +196,7 @@ void loop() {
     actuatorDisplayMessage("Close lid via app after maintenance, fellow city employee!");
     actuatorBuzzerBuzz(); // Buzz the buzzer to indicate lid is open
   }
-
+  
   // Request compression when needed
   if(lid_open && !firebaseTriggerLid) {
     float fullnessWeightRatio = mySensorData.fullness / mySensorData.weight; 
@@ -204,6 +208,11 @@ void loop() {
   // Close lid when conditions fullfilled
   if(lid_open && updateNeeded(LidCloseAfterMillis, &lidLastOpened) && !firebaseTriggerLid) {
     actuatorServoCloseLid();
+  }
+
+  // Stop buzzing when frequency exceeds -> no condition requests buzzing anymore
+  if(updateNeeded(buzzingFrequency*2, &lastBuzzed) && buzzerOn) {
+    actuatorBuzzerNobuzz();
   }
 }
 
@@ -436,7 +445,7 @@ void actuatorDisplaySetup() {
 }
 
 void actuatorDisplayMessage(String message) {
-
+  // TODO: make sure display only get's updated when message changes
 }
 
 void actuatorDisplayResetMessage() {
@@ -449,7 +458,23 @@ void actuatorBuzzerSetup() {
 }
 
 void actuatorBuzzerBuzz() {
-  static ulong lastBuzzed = 0;
-  tone(BuzzerControlPin, 750); // Generate a tone at 750 Hz on the buzzer control pin
+  // Turn on buzzer when it 
+  // --> previously was off
+  // --> and the buzzingFrequency time has passed
+  if(!buzzerOn && updateNeeded(buzzingFrequency, &lastBuzzed)) {
+    tone(BuzzerControlPin, 750); // Generate a tone at 750 Hz on the buzzer control pin
+    buzzerOn = true;
+    lastBuzzed = millis();
+  }
+  // Turn off buzzer
+  // --> when it previously was on
+  // --> and the buzzingFrequency time has passed
+  else if(buzzerOn && updateNeeded(buzzingFrequency, &lastBuzzed)){
+    noTone(BuzzerControlPin);
+    buzzerOn = false;
+  }
+}
 
+void actuatorBuzzerNobuzz() {
+  noTone(BuzzerControlPin);
 }
