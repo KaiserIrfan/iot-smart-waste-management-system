@@ -450,7 +450,8 @@ void actuatorServoCloseLid() {
 }
 
 void actuatorDisplaySetup() {
-
+  lcd.init();
+  lcd.backlight();
 }
 
 void actuatorDisplayMessage(String messageLine1, String messageLine2) {
