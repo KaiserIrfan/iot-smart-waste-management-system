@@ -159,10 +159,23 @@ void actuatorBuzzerNoBuzz(); // Function to stop buzzing
 
 // --- Setup, run once at boot ---
 void setup() {
+  // Init serial communication
   Serial.begin(115200);
+
+  // Setup internal led + wifi/firebase
   pinsSetup();
   wifiSetup();
   firebaseSetup();
+
+  // Setup sensors
+  sensorReadWeightSetup(); // Setup the weight sensor
+  sensorReadFullnessSetup(); // Setup the UV sensor
+  sensorReadTouchSetup(); // Setup the touch sensor
+
+  // Setup actuators
+  actuatorServoSetup(); // Setup the servo actuator
+  actuatorDisplaySetup(); // Setup the display
+  actuatorBuzzerSetup(); // Setup the buzzer
 }
 
 // --- Loop, run repeatedly until shutdown ---
