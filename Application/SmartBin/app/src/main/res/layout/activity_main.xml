@@ -13,10 +13,10 @@
         android:layout_height="wrap_content"
         android:text="Fullness"
         android:textSize="20dp"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="150dp"/>
 
     <TextView
         android:id="@+id/Fullness"
@@ -29,6 +29,48 @@
         app:layout_constraintTop_toBottomOf="@+id/FullnessTxt" />
 
     <TextView
+        android:id="@+id/WeightTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Weight"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Fullness"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:id="@+id/Weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="69"
+        android:textSize="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/WeightTxt" />
+
+    <TextView
+        android:id="@+id/TouchTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Touch?"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Weight"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:id="@+id/Touch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="True"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/TouchTxt" />
+
+    <TextView
         android:id="@+id/lid_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -37,7 +79,7 @@
         android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Fullness" />
+        app:layout_constraintTop_toBottomOf="@+id/Touch" />
 
     <Button
         android:id="@+id/lid_status_button"

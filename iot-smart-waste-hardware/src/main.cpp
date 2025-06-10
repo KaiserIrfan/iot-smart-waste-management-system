@@ -51,6 +51,7 @@ void setup() {
     auth.user.email = "esp32@google.com";
     auth.user.password = "esp-32";
     Firebase.begin(&config, &auth); // Initialize Firebase with the config and auth
+    Serial.print("Connecting to Firebase... ");
     if (Firebase.ready()) {
       Serial.println("Firebase is ready.");
       Serial.print("Firebase Host: ");

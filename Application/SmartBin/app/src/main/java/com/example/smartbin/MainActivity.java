@@ -21,9 +21,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView fullness, lid_status;
+    private TextView fullness, lid_status, touch, weight;
     private Button lidButton;
-    private boolean lidStatus;
+    private Boolean lidStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbref;
         fullness = findViewById(R.id.Fullness);
+        weight = findViewById(R.id.Weight);
+        touch = findViewById(R.id.Touch);
         lid_status = findViewById(R.id.lid_status);
         lidButton = findViewById(R.id.lid_status_button);
 
@@ -44,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         dbref = database.getReference("Readings");
-        dbref.child("Fullness").addValueEventListener(new ValueEventListener() {
+        dbref.child("fullness").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Object value = snapshot.getValue();
@@ -57,13 +59,49 @@ public class MainActivity extends AppCompatActivity {
                 Log.w("Failed to read value.", error.toException());
             }
         });
-        dbref = database.getReference("open_lid");
-        DatabaseReference finalDbref = dbref;
-        finalDbref.addValueEventListener(new ValueEventListener() {
+        dbref.child("weight").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                lidStatus = Boolean.TRUE.equals(snapshot.getValue(Boolean.class));
-                lid_status.setText(lidStatus ? "Open" : "Closed");
+                Object value = snapshot.getValue();
+                if (value != null){
+                    weight.setText(value.toString());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("Failed to read value.", error.toException());
+            }
+        });
+        dbref.child("touch").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Integer intValue = snapshot.getValue(Integer.class);
+
+                if (intValue != null && intValue == 1) {
+                    touch.setText("True");
+                }else{
+                    touch.setText("False");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("Failed to read value.", error.toException());
+            }
+        });
+        dbref.child("lid_open").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Integer intValue = snapshot.getValue(Integer.class);
+
+                if (intValue != null && intValue == 1) {
+                    lid_status.setText("True");
+                    lidStatus = true;
+                }else{
+                    lid_status.setText("False");
+                    lidStatus = false;
+                }
             }
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
@@ -74,9 +112,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (lidStatus) {
-                    finalDbref.setValue(false);
+                    dbref.child("lid_open").setValue(0);
                 } else {
-                    finalDbref.setValue(true);
+                    dbref.child("lid_open").setValue(1);
                 }
             }
         });
