@@ -147,7 +147,7 @@ void actuatorBuzzerSetup(); // Function to setup the buzzer
 
 void actuatorServoOpenLid(); // Function to open the lid using the servo actuator
 void actuatorServoCloseLid(); // Function to close the lid using the servo actuator
-void actuatorDisplayMessage(String message); // Function to display a message on the display
+void actuatorDisplayMessage(String messageLine1, String messageLine2); // Function to display a message on the display
 void actuatorDisplayResetMessage(); // Function to reset the display message
 void actuatorBuzzerBuzz(); // Function to buzz the buzzer
 void actuatorBuzzerNoBuzz(); // Function to stop buzzing
@@ -184,23 +184,23 @@ void loop() {
   // Default state
   // --> Closed lid, no override, ready for user
   if(!mySensorData.touch && !lid_open && !firebaseTriggerLid) {
-    actuatorDisplayMessage("Hello, stranger!");
+    actuatorDisplayMessage("Hello, stranger!", "");
   }
   // User requests opening
   // --> Bin has enough space: Adhere user request 
   else if(mySensorData.touch && !lid_open && mySensorData.fullness < LidBlockAtFullness) {
     actuatorServoOpenLid();
-    actuatorDisplayMessage("Ready to dump!");
+    actuatorDisplayMessage("Ready to dump!", "");
   }
   // --> Bin is too full: Refuse user request
   else if(mySensorData.touch && !lid_open && mySensorData.fullness >= LidBlockAtFullness) {
-    actuatorDisplayMessage("Bin is full, next bin is around the corner!");
+    actuatorDisplayMessage("Bin full, next", "around corner!");
     actuatorBuzzerBuzz(); // Buzz the buzzer to indicate bin is full
   }
   // City employee requests opening
   else if(firebaseTriggerLid && !lid_open) {
     actuatorServoOpenLid();
-    actuatorDisplayMessage("Close lid via app after maintenance, fellow city employee!");
+    actuatorDisplayMessage("Close lid", "when done!");
     actuatorBuzzerBuzz(); // Buzz the buzzer to indicate lid is open
   }
   
@@ -208,13 +208,14 @@ void loop() {
   if(lid_open && !firebaseTriggerLid) {
     float fullnessWeightRatio = mySensorData.fullness / mySensorData.weight; 
     if(fullnessWeightRatio > CompressionRatioThreshold) {
-      actuatorDisplayMessage("Please compress the trash, dear customer!");
+      actuatorDisplayMessage("Please compress", "the trash!");
       actuatorBuzzerBuzz(); 
   }
   
   // Close lid when conditions fullfilled
   if(lid_open && updateNeeded(LidCloseAfterMillis, &lidLastOpened) && !firebaseTriggerLid) {
     actuatorServoCloseLid();
+    actuatorDisplayResetMessage();
   }
 
   // Stop buzzing when frequency exceeds -> no condition requests buzzing anymore
@@ -452,12 +453,16 @@ void actuatorDisplaySetup() {
 
 }
 
-void actuatorDisplayMessage(String message) {
-  // TODO: make sure display only get's updated when message changes
+void actuatorDisplayMessage(String messageLine1, String messageLine2) {
+  lcd.clear();
+  lcd.setCursor(0, 0); // Set the cursor to the first row
+  lcd.print(messageLine1); // Print the first message row
+  lcd.setCursor(0, 1); // Set the cursor to the second row
+  lcd.print(messageLine2); // Print the second message row
 }
 
 void actuatorDisplayResetMessage() {
-  
+  lcd.clear(); // Clear the display
 }
 
 void actuatorBuzzerSetup() {
