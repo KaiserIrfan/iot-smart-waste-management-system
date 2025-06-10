@@ -30,25 +30,25 @@
 #define LED_BUILTIN 2 // Define the built-in LED pin for ESP32
 
 // Weight sensor
-#define LoadcellDoutPin NULL;
-#define LoadcellSckPiN NULL;
+#define LoadcellDoutPin 16;
+#define LoadcellSckPin 4;
 
-// UV sensors
+// US sensors
 // TODO: replace pins with actual pins
-#define UVtrigrPin NULL // Define the pin to send ultrasonic burst
-#define UVechoPin NULL // Define the pin to receive ultrasonic burst
+#define UStrigrPin 5 // Define the pin to send ultrasonic burst
+#define USechoPin 18 // Define the pin to receive ultrasonic burst
 
 // Capacitive touch sensor
-#define CapacitiveSignalPin NULL // Define the pin to read the capacitive touch sensor
+#define CapacitiveSignalPin 14 // Define the pin to read the capacitive touch sensor
 
 // Servo 
-#define ServoControlPin NULL
+#define ServoControlPin 18
 
 // Buzzer
-#define BuzzerControlPin NULL
+#define BuzzerControlPin 19
 
 // LCD
-#define lcdAddress NULL // TODO: Run scanner sketch to get LCD address
+#define lcdAddress 0x0 // TODO: Run scanner sketch to get LCD address
 
 // --- Firebase config ---
 
@@ -63,12 +63,12 @@
 // --> Divider: The value to divide the raw weight reading by
 #define LoadcellDivider 1 // TODO: replace with actual value
 
-// Calibrate UV sensor for bin fullness)
+// Calibrate US sensor for bin fullness)
 // --> Min: Distance measured when bin is full
 // --> Max: Distance measured when bin is empty
 // TODO: replace with actual values
-#define UVdistanceMin NULL
-#define UVdistanceMax NULL
+#define USdistanceMin NULL
+#define USdistanceMax NULL
 
 // Calibrate servo
 #define ServoMinPulse 1000
@@ -133,11 +133,11 @@ bool firebaseSend(String key, int value); // Function to send data to Firebase
 
 // Hardware functions
 void sensorReadWeightSetup(); // Function to setup the weight sensor
-void sensorReadFullnessSetup(); // Function to setup the UV sensor
+void sensorReadFullnessSetup(); // Function to setup the US sensor
 void sensorReadTouchSetup(); // Function to setup the touch sensor
 
 float sensorReadWeight(); // Function to read the weight sensor
-float sensorReadFullness(); // Function to read the UV sensor
+float sensorReadFullness(); // Function to read the US sensor
 bool sensorReadTouch(); // Function to read the touch sensor
 SensorData sensorRead(); // Function to read the sensors and send data to Firebase
 
@@ -169,7 +169,7 @@ void setup() {
 
   // Setup sensors
   sensorReadWeightSetup(); // Setup the weight sensor
-  sensorReadFullnessSetup(); // Setup the UV sensor
+  sensorReadFullnessSetup(); // Setup the US sensor
   sensorReadTouchSetup(); // Setup the touch sensor
 
   // Setup actuators
@@ -366,7 +366,7 @@ bool firebaseSend(String key, int value) {
 }
 
 void sensorReadWeightSetup() {
-  scale.begin(LoadcellDoutPin, LoadcellSckPiN);
+  scale.begin(LoadcellDoutPin, LoadcellSckPin);
   scale.set_scale(LoadcellDivider);
   scale.tare();
 }
@@ -378,9 +378,9 @@ float sensorReadWeight() {
 
 void sensorReadFullnessSetup() {
   // Initialize pin to send ultrasonic burst
-  pinMode(UVtrigrPin, OUTPUT);
+  pinMode(UStrigrPin, OUTPUT);
   // Initialize pin to receive ultrasonic burst
-  pinMode(UVechoPin, INPUT);  
+  pinMode(USechoPin, INPUT);  
 }
 
 float sensorReadFullness() {
@@ -388,24 +388,24 @@ float sensorReadFullness() {
   // --- Send the ultrasonic bust 
   
   // Make sure the pin to send out the ultrasonic burst is low first
-  digitalWrite(UVtrigrPin, LOW);
+  digitalWrite(UStrigrPin, LOW);
   delayMicroseconds(2);
   // Send a 10 microsecond ultrasonic burst
-  digitalWrite(UVtrigrPin, HIGH);
+  digitalWrite(UStrigrPin, HIGH);
   delayMicroseconds(10);
-  digitalWrite(UVtrigrPin, LOW);
+  digitalWrite(UStrigrPin, LOW);
 
   // --- Receive ultrasonic burst and calculate distance
 
   // How long to receive ultrasonic burst again
-  float durationToReceive = pulseIn(UVechoPin, HIGH);
+  float durationToReceive = pulseIn(USechoPin, HIGH);
   // Convert duration to distance
   // TODO: Check formula for correctness
   float measuredDistance = (durationToReceive * 0.0343) / 2;
   
   // --- Standardize distance ---
-  float relativeDistance = measuredDistance - UVdistanceMin;
-  float distanceRange = UVdistanceMax - UVdistanceMin;
+  float relativeDistance = measuredDistance - USdistanceMin;
+  float distanceRange = USdistanceMax - USdistanceMin;
   float standardizedDistance = (relativeDistance/distanceRange) * 100;
 
   return standardizedDistance;
@@ -425,7 +425,7 @@ SensorData sensorRead() {
   if(updateNeeded(500, &lastUpdate)) {
     SensorData mySensorData = {
       .weight = sensorReadWeight(), // Read the weight sensor
-      .fullness = sensorReadFullness(), // Read the UV sensor
+      .fullness = sensorReadFullness(), // Read the US sensor
       .touch = sensorReadTouch() // Read the touch sensor
     };
     Serial.println("Sensor data read:");
