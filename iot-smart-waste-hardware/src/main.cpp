@@ -30,8 +30,8 @@
 #define LED_BUILTIN 2 // Define the built-in LED pin for ESP32
 
 // Weight sensor
-#define LoadcellDoutPin 16;
-#define LoadcellSckPin 4;
+#define LoadcellDoutPin 16
+#define LoadcellSckPin 4
 
 // US sensors
 // TODO: replace pins with actual pins
@@ -150,7 +150,7 @@ void actuatorServoCloseLid(); // Function to close the lid using the servo actua
 void actuatorDisplayMessage(String messageLine1, String messageLine2); // Function to display a message on the display
 void actuatorDisplayResetMessage(); // Function to reset the display message
 void actuatorBuzzerBuzz(); // Function to buzz the buzzer
-void actuatorBuzzerNoBuzz(); // Function to stop buzzing
+void actuatorBuzzerNobuzz(); // Function to stop buzzing
 
 
 // -------------
@@ -223,6 +223,7 @@ void loop() {
     if(fullnessWeightRatio > CompressionRatioThreshold) {
       actuatorDisplayMessage("Please compress", "the trash!");
       actuatorBuzzerBuzz(); 
+    }
   }
   
   // Close lid when conditions fullfilled
