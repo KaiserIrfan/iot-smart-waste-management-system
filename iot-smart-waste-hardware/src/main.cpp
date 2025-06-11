@@ -247,29 +247,34 @@ void loop() {
 // --- Setup functions ---
 
 void pinsSetup() {
+  Serial.println("Setup begin: Builtin LED and Wifi trigger");
   pinMode(LED_BUILTIN, OUTPUT); // Initialize the LED_BUILTIN pin as an output
   pinMode(WiFiTriggerPin, INPUT_PULLUP); // Initialize the WiFi TriggerPin as an input
+  Serial.println("Setup complete: Builtin LED and Wifi trigger");
 }
 
 void wifiSetup() {
+  Serial.println("Setup begin: Wifi");
   WiFi.mode(WIFI_STA); // Set the WiFi mode to Station
   WiFiManager wm;
 
   if (!wm.autoConnect("ESP32_WiFi_Config")) {
-    Serial.println("Failed to connect to WiFi. Starting Config Portal...");
+    Serial.println("--> Failed to connect to WiFi. Starting Config Portal...");
   }
   
   if (WiFi.isConnected()) { // Check if WiFi is already connected
-    Serial.println("WiFi is connected.");
-    Serial.print("SSID: ");
+    Serial.println("--> WiFi is connected.");
+    Serial.print("--> SSID: ");
     Serial.println(WiFi.SSID()); // Print the connected SSID
-    Serial.print("IP Address: ");
+    Serial.print("--> IP Address: ");
     Serial.println(WiFi.localIP()); // Print the local IP address
     digitalWrite(LED_BUILTIN, HIGH); // LED indicates WiFi is connected
   }
+  Serial.println("Setup complete: Wifi");
 }
 
 void firebaseSetup() {
+  Serial.println("Setup begin: Firebase");
   config.api_key = API_KEY; // Set the Firebase API key
   config.database_url = DATABASE_URL; // Set the Firebase database URL
   if(WiFi.isConnected()) {
@@ -277,16 +282,17 @@ void firebaseSetup() {
     auth.user.password = "esp-32";
     Firebase.begin(&config, &auth); // Initialize Firebase with the config and auth
     if (Firebase.ready()) {
-      Serial.println("Firebase is ready.");
-      Serial.print("Firebase Host: ");
+      Serial.println("--> Firebase is ready.");
+      Serial.print("--> Firebase Host: ");
       Serial.println(config.database_url.c_str()); // Print the Firebase database URL
       firebaseConnected = true; // Set firebaseConnected to true
     }
     else
     {
-      Serial.println("Failed to initialize Firebase.");
+      Serial.println("--> Failed to initialize Firebase.");
     }
   }
+  Serial.println("Setup complete: Firebase");
 }
 
 // --- Loop functions ---
@@ -303,41 +309,52 @@ bool updateNeeded(ulong frequency, ulong *lastUpdate) {
 
 void wifiCheckTrigger() {
   // This function checks the trigger pin
+  Serial.println("Loop begin: Check Wifi trigger pin");
   if (digitalRead(WiFiTriggerPin) == LOW) { // If the trigger pin is LOW
-    Serial.println("WiFi setting activated!"); 
+    Serial.println("--> WiFi setting activated!"); 
     WiFiManager wm; // Create a WiFiManager object
     wm.setConfigPortalTimeout(120); // Set a timeout for the config portal
-    Serial.println("Timeout in 120 seconds.");
+    Serial.println("--> Timeout in 120 seconds.");
     if (wm.startConfigPortal("ESP32_WiFi_Config")) { // Start the config portal with a custom SSID
-      Serial.println("WiFi Config Portal started successfully!");
-      Serial.println("WiFi is connected.");
-      Serial.print("SSID: ");
+      Serial.println("--> WiFi Config Portal started successfully!");
+      Serial.println("--> WiFi is connected.");
+      Serial.print("--> SSID: ");
       Serial.println(WiFi.SSID()); // Print the connected SSID
-      Serial.print("IP Address: ");
+      Serial.print("--> IP Address: ");
       Serial.println(WiFi.localIP()); // Print the local IP address
     } else {
-      Serial.println("Failed to start WiFi Config Portal.");
+      Serial.println("--> Failed to start WiFi Config Portal.");
     }
   } 
+  Serial.println("Loop complete: Check Wifi trigger pin");
 }
 
 void wifiFirebaseConnectionCheck() {
-    if(!WiFi.isConnected()) { // Check if WiFi is not connected
-    Serial.println("WiFi is not connected");
+  Serial.println("Loop begin: Check wifi and firebase connection");
+  if(!WiFi.isConnected()) { // Check if WiFi is not connected
+    Serial.println("--> WiFi is not connected");
     digitalWrite(LED_BUILTIN, LOW); // LED indicates WiFi is not connected
   } else {
     digitalWrite(LED_BUILTIN, HIGH); // LED indicates WiFi is connected
+    Serial.println("--> WiFi is connected");
     if(auth.token.uid != ""){
       firebaseConnected = true; // Set firebaseConnected to true if UID is not empty
-    } else {firebaseConnected = false;}
+      Serial.println("--> Firebase is connected");
+    } 
+    else {
+      firebaseConnected = false;
+      Serial.println("--> Firebase is not connected");
+    }
   }
+  Serial.println("Loop complete: Check wifi an firebase connection");
 }
 
 int firebaseReadLidTrigger() {
+  Serial.println("Loop: Read firebase lid trigger");
   static ulong lastUpdated = 0;
   if(Firebase.ready() && firebaseConnected == true && updateNeeded(5000, &lastUpdated)){
     if (Firebase.RTDB.getInt(&fbdo, "/open_lid")) {
-      Serial.print("Open Lid: ");
+      Serial.print("--> Open Lid: ");
       if (fbdo.intData() == 1) {
         Serial.println("true"); // Print true if the lid is open
         return fbdo.intData();
@@ -345,83 +362,109 @@ int firebaseReadLidTrigger() {
       Serial.println("false"); // Print false if the lid is closed
     }
   }
+  Serial.println("Loop complete: Read firebase lid trigger");
   return false;
 }
 
 bool firebaseSend(String key, int value) {
+  Serial.println("Loop begin: Send to firebase");
   if(Firebase.ready() && firebaseConnected == true) {
     if (Firebase.RTDB.setInt(&fbdo, key, value)) {
-      Serial.print("Data sent to Firebase: ");
+      Serial.print("--> Data sent to Firebase: ");
       Serial.print(key);
       Serial.print(" = ");
       Serial.println(value);
       return true; // Return true if data is sent successfully
     } else {
-      Serial.print("Failed to send data to Firebase: ");
+      Serial.print("--> Failed to send data to Firebase: ");
       Serial.println(fbdo.errorReason()); // Print the error reason if sending fails
     }
   } else {
-    Serial.println("Firebase is not ready or not connected.");
+    Serial.println("--> Firebase is not ready or not connected.");
   }
+  Serial.println("Loop complete: Send to firebase");
   return false;
 }
 
 void sensorReadWeightSetup() {
+  Serial.println("Setup begin: Scale/Loadcell");
   scale.begin(LoadcellDoutPin, LoadcellSckPin);
   scale.set_scale(LoadcellDivider);
   scale.tare();
+  Serial.println("Setup complete: Scale/Loadcell");
 }
 
 float sensorReadWeight() {
+  Serial.println("Loop begin: Scale/loadcell");
   float weight = scale.get_units();
+  Serial.print("--> Weight: ");
+  Serial.println(weight);
+  Serial.println("Loop complete: Scale/Loadcell");
   return weight;
 }
 
 void sensorReadFullnessSetup() {
+  Serial.println("Setup begin: Ultrasonic sensor");
   // Initialize pin to send ultrasonic burst
   pinMode(UStrigrPin, OUTPUT);
   // Initialize pin to receive ultrasonic burst
   pinMode(USechoPin, INPUT);  
+  Serial.println("Setup complete: Ultrasonic sensor");
 }
 
 float sensorReadFullness() {
-  
   // --- Send the ultrasonic bust 
-  
+  Serial.println("Loop begin: Ultrasonic sensor");
   // Make sure the pin to send out the ultrasonic burst is low first
+  Serial.println("--> Send ultrasonic burst");
   digitalWrite(UStrigrPin, LOW);
   delayMicroseconds(2);
   // Send a 10 microsecond ultrasonic burst
   digitalWrite(UStrigrPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(UStrigrPin, LOW);
+  Serial.println("--> Ultrasonic burst sent");
 
   // --- Receive ultrasonic burst and calculate distance
-
   // How long to receive ultrasonic burst again
   float durationToReceive = pulseIn(USechoPin, HIGH);
+  Serial.print("--> Duration to receive: ");
+  Serial.println(durationToReceive);
   // Convert duration to distance
   // TODO: Check formula for correctness
   float measuredDistance = (durationToReceive * 0.0343) / 2;
+  Serial.print("--> Measured distance: ");
+  Serial.println(measuredDistance);
   
   // --- Standardize distance ---
   float relativeDistance = measuredDistance - USdistanceMin;
   float distanceRange = USdistanceMax - USdistanceMin;
   float standardizedDistance = (relativeDistance/distanceRange) * 100;
+  Serial.print("--> Standardized distance: ");
+  Serial.println(standardizedDistance);
 
+  Serial.println("Loop complete: Ultrasonic sensor");
   return standardizedDistance;
 }
 
 void sensorReadTouchSetup() {
   // Initialize the pin to read the capacitive touch sensor
+  Serial.println("Setup begin: Capacitive sensor");
   pinMode(CapacitiveSignalPin, INPUT);
+  Serial.println("Setup complete: Capacitive sensor");
 }
 
 bool sensorReadTouch() {
-  return digitalRead(CapacitiveSignalPin); // Read the capacitive touch sensor pin
+  Serial.println("Loop begin: Capacitive sensor");
+  bool touch = digitalRead(CapacitiveSignalPin);
+  Serial.print("Touch: ");
+  Serial.println(touch);
+  Serial.println("Loop complete: Capacitive sensor");
+  return touch; // Read the capacitive touch sensor pin
 }
 
 SensorData sensorRead() {
+  Serial.println("Loop begin: Read sensors");
   static ulong lastUpdate = 0;
   if(updateNeeded(500, &lastUpdate)) {
     SensorData mySensorData = {
@@ -429,63 +472,84 @@ SensorData sensorRead() {
       .fullness = sensorReadFullness(), // Read the US sensor
       .touch = sensorReadTouch() // Read the touch sensor
     };
-    Serial.println("Sensor data read:");
-    Serial.print("Weight: ");
+    Serial.println("--> Sensor data read:");
+    Serial.print("----> Weight: ");
     Serial.println(mySensorData.weight);
-    Serial.print("Fullness: ");
+    Serial.print("----> Fullness: ");
     Serial.println(mySensorData.fullness);
-    Serial.print("Touch: ");
+    Serial.print("----> Touch: ");
     Serial.println(mySensorData.touch);
     // Send the sensor data to Firebase
     firebaseSend("/Readings/weight", mySensorData.weight);
     firebaseSend("/Readings/fullness", mySensorData.fullness);
     firebaseSend("/Readings/touch", mySensorData.touch);
+    Serial.println("Loop complete: Read sensors");
     return mySensorData;;
   }
 }
 
 void actuatorServoSetup() {
+  Serial.println("Setup begin: Servo");
   myServo.attach(ServoControlPin, ServoMinPulse, ServoMaxPulse); // Attach the servo to the control pin with min and max pulse width
+  myServo.write(0); // Set servo to position 0 at initially
+  Serial.println("Setup complete: Servo");
 }
 
 void actuatorServoOpenLid() {
+  Serial.println("Loop begin: Servo");
   myServo.write(90); // Write 0 degrees to the servo to open the lid
   lid_open = true; 
   lidLastOpened= millis();
-  Serial.println("Lid opened.");
+  Serial.println("--> Lid opened.");
   firebaseSend("Readings/lid_open", true); // Send the lid status to Firebase
+  Serial.println("Loop complete: Servo");
 }
 
 void actuatorServoCloseLid() {
+  Serial.println("Loop begin: Servo");
   myServo.write(0); // Write 0 degrees to the servo to close the lid
   lid_open = false;
-  Serial.println("Lid closed.");
+  Serial.println("--> Lid closed.");
   firebaseSend("Readings/lid_open", false); // Send the lid status to Firebase
+  Serial.println("Loop complete: Servo");
 }
 
 void actuatorDisplaySetup() {
+  Serial.println("Setup begin: LCD");
   lcd.init();
   lcd.backlight();
+  Serial.println("Setup complete: LCD");
 }
 
 void actuatorDisplayMessage(String messageLine1, String messageLine2) {
+  Serial.println("Loop begin: LCD");
   lcd.clear();
   lcd.setCursor(0, 0); // Set the cursor to the first row
   lcd.print(messageLine1); // Print the first message row
   lcd.setCursor(0, 1); // Set the cursor to the second row
   lcd.print(messageLine2); // Print the second message row
+  Serial.print("--> Printed: ");
+  Serial.print(messageLine1);
+  Serial.print(" ");
+  Serial.println(messageLine2);
+  Serial.println("Loop complete: LCD");
 }
 
 void actuatorDisplayResetMessage() {
+  Serial.println("Loop begin: Clear LCD");
   lcd.clear(); // Clear the display
+  Serial.println("Loop complete: Clear LCD");
 }
 
 void actuatorBuzzerSetup() {
+  Serial.println("Setup begin: Buzzer");
   pinMode(BuzzerControlPin, OUTPUT); // Initialize the buzzer control pin as an output
   digitalWrite(BuzzerControlPin, LOW); // Set the buzzer to LOW initially
+  Serial.println("Setup complete: Buzzer");
 }
 
 void actuatorBuzzerBuzz() {
+  Serial.println("Loop begin: Buzzer");
   // Turn on buzzer when it 
   // --> previously was off
   // --> and the buzzingFrequency time has passed
@@ -493,6 +557,7 @@ void actuatorBuzzerBuzz() {
     tone(BuzzerControlPin, 750); // Generate a tone at 750 Hz on the buzzer control pin
     buzzerOn = true;
     lastBuzzed = millis();
+    Serial.println("--> Buzz turned on");
   }
   // Turn off buzzer
   // --> when it previously was on
@@ -500,9 +565,13 @@ void actuatorBuzzerBuzz() {
   else if(buzzerOn && updateNeeded(buzzingFrequency, &lastBuzzed)){
     noTone(BuzzerControlPin);
     buzzerOn = false;
+    Serial.println("--> Buzz turned off");
   }
+  Serial.println("Loop complete: Buzzer");
 }
 
 void actuatorBuzzerNobuzz() {
+  Serial.println("Loop begin: Buzz off");
   noTone(BuzzerControlPin);
+  Serial.println("Loop complete: Buzz off");
 }
