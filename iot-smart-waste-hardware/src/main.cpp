@@ -128,7 +128,7 @@ bool updateNeeded(ulong frequency, ulong *lastUpdate);
 // IoT function
 void wifiCheckTrigger(); // Function to check the trigger pin and start WiFi configuration
 void wifiFirebaseConnectionCheck();
-bool firebaseReadLidTrigger();
+int firebaseReadLidTrigger();
 bool firebaseSend(String key, int value); // Function to send data to Firebase
 
 // Hardware functions
@@ -189,7 +189,7 @@ void loop() {
   wifiFirebaseConnectionCheck(); // Check if WiFi and Firebase is connected
 
   // --- Read data ---
-  bool firebaseTriggerLid = firebaseReadLidTrigger();
+  bool firebaseTriggerLid = bool(firebaseReadLidTrigger());
   SensorData mySensorData = sensorRead(); // Read the sensors
 
   // --- Control the lid ---
@@ -333,14 +333,14 @@ void wifiFirebaseConnectionCheck() {
   }
 }
 
-bool firebaseReadLidTrigger() {
+int firebaseReadLidTrigger() {
   static ulong lastUpdated = 0;
   if(Firebase.ready() && firebaseConnected == true && updateNeeded(5000, &lastUpdated)){
-    if (Firebase.RTDB.getBool(&fbdo, "/open_lid")) {
+    if (Firebase.RTDB.getInt(&fbdo, "/open_lid")) {
       Serial.print("Open Lid: ");
-      if (fbdo.boolData()) {
+      if (fbdo.intData() == 1) {
         Serial.println("true"); // Print true if the lid is open
-        return fbdo.boolData();
+        return fbdo.intData();
       }
       Serial.println("false"); // Print false if the lid is closed
     }
