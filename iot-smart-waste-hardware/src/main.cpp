@@ -168,7 +168,7 @@ void setup() {
   firebaseSetup();
 
 
-  /* 
+   
   // Setup sensors
   sensorReadWeightSetup(); // Setup the weight sensor
   sensorReadFullnessSetup(); // Setup the US sensor
@@ -178,7 +178,6 @@ void setup() {
   actuatorServoSetup(); // Setup the servo actuator
   actuatorDisplaySetup(); // Setup the display
   actuatorBuzzerSetup(); // Setup the buzzer
-  */
 }
 
 // --- Loop, run repeatedly until shutdown ---
