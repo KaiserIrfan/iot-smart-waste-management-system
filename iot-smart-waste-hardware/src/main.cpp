@@ -42,7 +42,7 @@
 #define CapacitiveSignalPin 14 // Define the pin to read the capacitive touch sensor
 
 // Servo 
-#define ServoControlPin 4
+#define ServoControlPin 13
 
 // Buzzer
 #define BuzzerControlPin 19
