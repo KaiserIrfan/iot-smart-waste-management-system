@@ -42,13 +42,13 @@
 #define CapacitiveSignalPin 14 // Define the pin to read the capacitive touch sensor
 
 // Servo 
-#define ServoControlPin 18
+#define ServoControlPin 4
 
 // Buzzer
 #define BuzzerControlPin 19
 
 // OLED
-#define oledAddress 0x3 // Usuall 0x3 or 0x27
+#define oledAddress 0x3 // Usually 0x3 or 0x27
 
 // --- Firebase config ---
 
