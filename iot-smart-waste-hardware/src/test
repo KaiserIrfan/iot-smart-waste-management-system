@@ -1,0 +1,97 @@
+#include <Arduino.h>
+#include <ESP32Servo.h>
+bool ok;
+Servo sv;
+void setup() {
+  Serial.begin(115200);
+  ok = sv.attach(13);
+  if (sv.attached()) {
+    Serial.println("✅ Servo attached....");
+  } else {
+    Serial.println("❌ Servo attach failed!!!!");
+  }
+}
+
+void loop() {
+  if (sv.attached()) {
+    Serial.println("✅ Servo attached....");
+  } else {
+    Serial.println("❌ Servo attach failed!!!!");
+  }
+  // put your main code here, to run repeatedly:
+  Serial.println("0");
+  sv.write(0);   // Expect ~0.5V
+  delay(3000);
+  Serial.println("90");
+  sv.write(90);  // Expect ~1.5V
+  delay(3000);
+  Serial.println("180");
+  sv.write(180); // Expect ~2.3V
+  delay(3000);
+}
+
+
+/*
+#define LED_BUILTIN 2
+#define SERVOPIN 4
+#define TRIGPIN 5
+#define ECHOPIN 18
+
+//define sound speed in cm/uS
+#define SOUND_SPEED 0.034
+
+long duration;
+float distanceCm;
+float distanceInch;
+
+Servo servo1;
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(TRIGPIN, OUTPUT); // Sets the trigPin as an Output
+  pinMode(ECHOPIN, INPUT); // Sets the echoPin as an Input
+  servo1.setPeriodHertz(50);      // Standard servo PWM frequency
+  servo1.attach(SERVOPIN, 1000, 2000); // Attach with min and max pulse width (in µs)
+
+  Serial.println("Setup complete.");
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  
+  // Clears the trigPin
+  digitalWrite(TRIGPIN, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(TRIGPIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIGPIN, LOW);
+  
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(ECHOPIN, HIGH);
+  
+  // Calculate the distance
+  distanceCm = duration * SOUND_SPEED/2;
+
+  // Prints the distance in the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(distanceCm);
+  Serial.println(" cm");
+
+  Serial.println(millis());
+
+
+  Serial.println("Moving to 0°");
+  servo1.write(0);
+  delay(1000);
+
+  Serial.println("Moving to 90°");
+  servo1.write(90);
+  delay(1000);
+
+  Serial.println("Moving to 180°");
+  servo1.write(180);
+  delay(1000);
+}*/

@@ -107,7 +107,7 @@ void loop() {
 void checkWiFiTrigger() {
   // This function checks the trigger pin
   static unsigned long lastTrigger = 0;
-  if (millis() - lastTrigger > 2000 && (TriggerPin) == LOW) { // If the trigger pin is LOW
+  if (millis() - lastTrigger > 2000 && digitalRead(TriggerPin) == LOW) { // If the trigger pin is LOW
     lastTrigger = millis();
     Serial.println("WiFi setting activated!"); 
     WiFiManager wm; // Create a WiFiManager object

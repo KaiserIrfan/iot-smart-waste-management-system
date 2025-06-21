@@ -23,7 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 public class MainActivity extends AppCompatActivity {
     private TextView fullness, lid_status, touch, weight;
     private Button lidButton;
-    private Boolean lidStatus;
+    private Integer lidStatus = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference dbref;
+        DatabaseReference dbref2;
         fullness = findViewById(R.id.Fullness);
         weight = findViewById(R.id.Weight);
         touch = findViewById(R.id.Touch);
@@ -97,10 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
                 if (intValue != null && intValue == 1) {
                     lid_status.setText("True");
-                    lidStatus = true;
                 }else{
                     lid_status.setText("False");
-                    lidStatus = false;
                 }
             }
             @Override
@@ -108,13 +107,16 @@ public class MainActivity extends AppCompatActivity {
                 Log.w("Failed to read value.", error.toException());
             }
         });
+        dbref2 = database.getReference("open_lid");
         lidButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (lidStatus) {
-                    dbref.child("lid_open").setValue(0);
+                if (lidStatus == 1) {
+                    dbref2.setValue(0);
+                    lidStatus = 0;
                 } else {
-                    dbref.child("lid_open").setValue(1);
+                    dbref2.setValue(1);
+                    lidStatus = 1;
                 }
             }
         });
