@@ -1,0 +1,46 @@
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128  // OLED display width
+#define SCREEN_HEIGHT 64  // OLED display height
+#define OLED_RESET     -1 // Reset pin (not used)
+#define SCREEN_ADDRESS 0x3C  // Most common I2C address
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+int num = 0;
+void setup() {
+  Serial.begin(115200);
+
+  // Initialize display
+  if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("❌ SSD1306 allocation failed"));
+    while (true);  // Stop here
+  }
+
+  display.clearDisplay();
+  display.setTextSize(2);             // Text size (2x)
+  display.setTextColor(SSD1306_WHITE);// Text color
+  display.setCursor(0, 0);            // Top-left corner
+  display.println("Hello");
+  display.display();                  // Push to display
+}
+
+void loop() {
+  num++;
+  Serial.println("Loop:");
+  Serial.println(num);
+  delay(1000);
+  display.println("This");
+  display.display();
+  delay(1000);
+  display.println("Is");
+  display.display();
+  delay(1000);
+  display.println("Working"+ String(num));
+  display.display();
+  delay(1000);
+  display.clearDisplay();
+  display.setCursor(0, 0); 
+  display.display();
+}

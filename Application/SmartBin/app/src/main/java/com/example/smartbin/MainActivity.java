@@ -21,7 +21,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
-    private TextView fullness, lid_status, touch, weight;
+    private TextView fullness, lid_status, touch, weight, force;
     private Button lidButton;
     private Integer lidStatus = 0;
 
@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         touch = findViewById(R.id.Touch);
         lid_status = findViewById(R.id.lid_status);
         lidButton = findViewById(R.id.lid_status_button);
+        force = findViewById(R.id.Force);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -97,9 +98,9 @@ public class MainActivity extends AppCompatActivity {
                 Integer intValue = snapshot.getValue(Integer.class);
 
                 if (intValue != null && intValue == 1) {
-                    lid_status.setText("True");
+                    lid_status.setText("Lid is open");
                 }else{
-                    lid_status.setText("False");
+                    lid_status.setText("Lid is closed");
                 }
             }
             @Override
@@ -114,9 +115,11 @@ public class MainActivity extends AppCompatActivity {
                 if (lidStatus == 1) {
                     dbref2.setValue(0);
                     lidStatus = 0;
+                    force.setText("False");
                 } else {
                     dbref2.setValue(1);
                     lidStatus = 1;
+                    force.setText("True");
                 }
             }
         });

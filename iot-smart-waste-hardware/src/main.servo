@@ -1,0 +1,48 @@
+/*#include <ESP32Servo.h>
+bool ok;
+Servo sv;
+void setup() {
+  Serial.begin(115200);
+  ok = sv.attach(13);
+  if (sv.attached()) {
+    Serial.println("✅ Servo attached....");
+  } else {
+    Serial.println("❌ Servo attach failed!!!!");
+  }
+}
+
+void loop() {
+  if (sv.attached()) {
+    Serial.println("✅ Servo attached....");
+  } else {
+    Serial.println("❌ Servo attach failed!!!!");
+  }
+  // put your main code here, to run repeatedly:
+  Serial.println("0");
+  sv.write(0);   // Expect ~0.5V
+  delay(4000);
+  Serial.println("180");
+  sv.write(180); // Expect ~2.3V
+  delay(4000);
+}*/
+#include <Arduino.h>
+#include <Servo.h>
+
+Servo sv;
+
+void setup() {
+  Serial.begin(115200);
+  sv.attach(13);              // Just attach pin
+  sv.write(0);                // Move to 0°
+  delay(2000);
+  sv.write(180);              // Move to 180°
+  delay(2000);
+}
+
+void loop() {
+  sv.write(90);
+  delay(2000);
+  sv.write(0);
+  delay(2000);
+}
+

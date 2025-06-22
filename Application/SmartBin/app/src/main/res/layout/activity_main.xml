@@ -71,6 +71,27 @@
         app:layout_constraintTop_toBottomOf="@+id/TouchTxt" />
 
     <TextView
+        android:id="@+id/ForceTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Force Open?"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Touch"
+        android:layout_marginTop="20dp"/>
+
+    <TextView
+        android:id="@+id/Force"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="True"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ForceTxt" />
+
+    <TextView
         android:id="@+id/lid_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -79,7 +100,7 @@
         android:textSize="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/Touch" />
+        app:layout_constraintTop_toBottomOf="@+id/Force" />
 
     <Button
         android:id="@+id/lid_status_button"
