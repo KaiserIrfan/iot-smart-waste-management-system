@@ -462,7 +462,7 @@ void actuatorServoSetup() {
 }
 
 void actuatorServoOpenLid() {
-  myServo.write(90); // Write 0 degrees to the servo to open the lid
+  myServo.write(110); // Write 0 degrees to the servo to open the lid
   lid_open = true; 
   lidLastOpened= millis();
   Serial.println("Lid opened.");
